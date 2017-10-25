@@ -7,11 +7,11 @@
 ;; for components and rules https://tametheboardgame.com/category/published-games/pit/
 extensions [sound cf]
 
-globals [deck  do-trade xcards1 xcards2 winner this-trader-g other-trader-g score]
+globals [deck  do-trade xcards1 xcards2 winner this-trader-g other-trader-g]
 
 breed [players player]
 
-players-own [cards keepers trade-set offered-cards offered-count]
+players-own [cards keepers trade-set offered-cards offered-count score]
 
 
 to output-help
@@ -53,12 +53,11 @@ to deal
     set cards sort cards
     set keepers []
     set trade-set []
+    set score []
   ]
-  foreach sublist shuffle (range 0 4) 0 2 [ x ->
-    ask player x [
-      set cards sentence cards first deck
-      set deck but-first deck
-    ]
+  ask n-of 2 players [
+    set cards sentence cards first deck
+    set deck but-first deck
   ]
   ; deal 1 extra card each to 2 random players
 end
@@ -176,11 +175,11 @@ end
 
 to score-winner [commodity]
   cf:match commodity
-  cf:case [c -> c = "wheat"] [set score 100]
-  cf:case [c -> c = "barley"] [set score 85]
-  cf:case [c -> c = "corn"] [set score 75]
-  cf:case [c -> c = "oats"] [set score 60]
-  cf:else [set score 50] ; fictional price
+  cf:case [c -> c = "wheat"] [set score lput 100 score]
+  cf:case [c -> c = "barley"] [set score lput 85 score]
+  cf:case [c -> c = "corn"] [set score lput 75 score]
+  cf:case [c -> c = "oats"] [set score lput 60 score]
+  cf:else [set score lput 50 score] ; fictional price
 end
 
 to find-and-make-trade
@@ -256,6 +255,8 @@ to exchange-cards [this-trader other-trader]
     ask player this-trader  [set cards sentence cards xcards2]
     ask player other-trader [set cards sentence cards xcards1]
 end
+
+;; TODO: write game-loop until score of player > 500
 @#$#@#$#@
 GRAPHICS-WINDOW
 270
