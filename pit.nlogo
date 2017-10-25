@@ -5,13 +5,13 @@
 ;; based on the Pit card game
 ;; modified and extended by Andrew Yip 23 Oct 2017
 ;; for components and rules https://tametheboardgame.com/category/published-games/pit/
-extensions [sound cf]
+extensions [sound cf array]
 
-globals [deck  do-trade xcards1 xcards2 winner this-trader-g other-trader-g]
+globals [deck  do-trade xcards1 xcards2 winner this-trader-g other-trader-g scores]
 
 breed [players player]
 
-players-own [cards keepers trade-set offered-cards offered-count score]
+players-own [cards keepers trade-set offered-cards offered-count]
 
 
 to output-help
@@ -22,7 +22,7 @@ to output-help
 end
 
 to setup
-  ca
+  ct ; reset turtles
   set deck []
   set xcards1 []
   set xcards2 []
@@ -41,7 +41,6 @@ to setup
 
   set deck shuffle deck ; no need for repeat 9 here
   deal
-  output-help
   reset-ticks
 end
 
@@ -53,7 +52,6 @@ to deal
     set cards sort cards
     set keepers []
     set trade-set []
-    set score []
   ]
   ask n-of 2 players [
     set cards sentence cards first deck
@@ -114,6 +112,7 @@ to-report occurrences [x the-list]
 end
 
 ; TODO: offer bear card first
+; TODO: trade out low value cards first at a tie
 to select-offer
   foreach sort players [ [?1] ->
       ask ?1 [
@@ -147,7 +146,6 @@ to select-offer
       set winner lput who winner
       set do-trade false
       score-winner one-of modes cards
-      output-print (word "score: " score)
       stop ]
 
     ; add bull corner
@@ -157,7 +155,6 @@ to select-offer
       set winner lput who winner
       set do-trade false
       score-winner one-of modes cards
-      output-print (word "score: " score)
       stop ]
 
     if occurrences one-of modes cards cards = 9 [
@@ -166,20 +163,19 @@ to select-offer
       set winner lput who winner
       set do-trade false
       score-winner one-of modes cards
-      output-print (word "score: " score)
       stop ]
   ]
-
   output-print "end select-offer" output-print ""
 end
 
 to score-winner [commodity]
+  print scores
   cf:match commodity
-  cf:case [c -> c = "wheat"] [set score lput 100 score]
-  cf:case [c -> c = "barley"] [set score lput 85 score]
-  cf:case [c -> c = "corn"] [set score lput 75 score]
-  cf:case [c -> c = "oats"] [set score lput 60 score]
-  cf:else [set score lput 50 score] ; fictional price
+  cf:case [c -> c = "wheat"] [array:set scores who 100 + array:item scores who]
+  cf:case [c -> c = "barley"] [array:set scores who 85 + array:item scores who]
+  cf:case [c -> c = "corn"] [array:set scores who 75 + array:item scores who]
+  cf:case [c -> c = "oats"] [array:set scores who 60 + array:item scores who]
+  cf:else [array:set scores who 50 + array:item scores who] ; fictional price
 end
 
 to find-and-make-trade
@@ -256,7 +252,25 @@ to exchange-cards [this-trader other-trader]
     ask player other-trader [set cards sentence cards xcards1]
 end
 
-;; TODO: write game-loop until score of player > 500
+to one-round
+  setup
+  while [length winner < 1] [
+  analyze-position
+  find-and-make-trade
+  ]
+end
+
+;  write game-loop until score of player > 500
+to one-game
+  ca
+  set scores array:from-list [0 0 0 0 0]
+  print scores
+  while [max (array:to-list scores) < 500] [
+    one-round
+  ]
+  print (word "player "  position max (array:to-list scores) array:to-list scores " wins with score " max (array:to-list scores))
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 270
@@ -404,9 +418,9 @@ NIL
 
 MONITOR
 375
-50
+150
 435
-95
+195
 NIL
 do-trade
 17
@@ -510,11 +524,11 @@ NIL
 BUTTON
 350
 10
-430
+447
 43
-Play to end
-analyze-position\nfind-and-make-trade\nif length winner > 0 [\nstop]
-T
+One round
+one-round
+NIL
 1
 T
 OBSERVER
@@ -555,6 +569,34 @@ MONITOR
 280
 NIL
 sort [cards] of player 4
+17
+1
+11
+
+BUTTON
+385
+55
+477
+88
+One game
+one-game
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+225
+275
+282
+320
+p4
+[offered-count] of player 4
 17
 1
 11
