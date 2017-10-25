@@ -142,7 +142,7 @@ to select-offer
   ; add bull corner
   ; add double bull corner
   ask players [
-    if member? "bull" cards and length trade-set = 0 and length cards = 10 [
+    if member? "bull" cards and occurrences one-of modes cards cards = 9 [
       output-show (word "Double Bull Winner! (" item 2 cards ")")
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
@@ -157,7 +157,7 @@ to select-offer
       set do-trade false
       stop ]
 
-    if length trade-set = 0 [
+    if occurrences one-of modes cards cards = 9 [
       output-show (word "Winner! (" item 1 cards ")" )
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
