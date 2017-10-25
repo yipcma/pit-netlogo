@@ -3,11 +3,11 @@
 ;; requires NetLogo 6.0 or higher
 ;; by Doug Edmunds
 ;; based on the Pit card game
-;; edited by Andrew Yip 23 Oct 2017
+;; modified and extended by Andrew Yip 23 Oct 2017
+;; for components and rules https://tametheboardgame.com/category/published-games/pit/
+extensions [sound cf]
 
-extensions [sound]
-
-globals [deck  do-trade xcards1 xcards2 winner this-trader-g other-trader-g]
+globals [deck  do-trade xcards1 xcards2 winner this-trader-g other-trader-g score]
 
 breed [players player]
 
@@ -147,6 +147,8 @@ to select-offer
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
       set do-trade false
+      score-winner one-of modes cards
+      output-print (word "score: " score)
       stop ]
 
     ; add bull corner
@@ -155,6 +157,8 @@ to select-offer
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
       set do-trade false
+      score-winner one-of modes cards
+      output-print (word "score: " score)
       stop ]
 
     if occurrences one-of modes cards cards = 9 [
@@ -162,16 +166,22 @@ to select-offer
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
       set do-trade false
+      score-winner one-of modes cards
+      output-print (word "score: " score)
       stop ]
-
-    ; TODO: count explicitly for bull win, trade-set is unreliable for duplicates in cards
-
-
   ]
 
   output-print "end select-offer" output-print ""
 end
 
+to score-winner [commodity]
+  cf:match commodity
+  cf:case [c -> c = "wheat"] [set score 100]
+  cf:case [c -> c = "barley"] [set score 85]
+  cf:case [c -> c = "corn"] [set score 75]
+  cf:case [c -> c = "oats"] [set score 60]
+  cf:else [set score 50] ; fictional price
+end
 
 to find-and-make-trade
   output-print ""
