@@ -22,6 +22,11 @@ to output-help
 end
 
 to setup
+  ca
+  set scores array:from-list [0 0 0 0 0]
+  set round-counter 0
+end
+to setup-round
   ct ; reset turtles
   set deck []
   set xcards1 []
@@ -269,7 +274,7 @@ to exchange-cards [this-trader other-trader]
 end
 
 to one-round
-  setup
+  setup-round
   while [length winner < 1] [
   analyze-position
   find-and-make-trade
@@ -281,14 +286,12 @@ end
 
 ;  write game-loop until score of player > 500
 to one-game
-  ca
-  set scores array:from-list [0 0 0 0 0]
-  set round-counter 0
   while [max (array:to-list scores) < 500] [
     one-round
   ]
   print (word "player "  position max (array:to-list scores) array:to-list scores " wins with score " max (array:to-list scores))
-
+  stop
+  ; TODO: fix behaviorSpace not stopping
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -1019,13 +1022,11 @@ NetLogo 6.0.2
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment" repetitions="10" runMetricsEveryStep="false">
+  <experiment name="experiment" repetitions="8" runMetricsEveryStep="false">
     <setup>setup</setup>
-    <go>analyze-position
-find-and-make-trade
-if length winner &gt; 0 [
-stop]</go>
+    <go>one-game</go>
     <metric>first winner</metric>
+    <metric>array:to-list scores</metric>
   </experiment>
 </experiments>
 @#$#@#$#@
