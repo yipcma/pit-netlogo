@@ -11,7 +11,7 @@ globals [deck  do-trade xcards1 xcards2 winner this-trader-g other-trader-g scor
 
 breed [players player]
 
-players-own [cards keepers trade-set offered-cards offered-count]
+players-own [cards keepers trade-set offered-cards offered-count won]
 
 
 to output-help
@@ -52,6 +52,7 @@ to deal
     set cards sort cards
     set keepers []
     set trade-set []
+    set won false
   ]
   ask n-of 2 players [
     set cards sentence cards first deck
@@ -139,13 +140,15 @@ to select-offer
   ;; if more than one winner, whoever is first to ring the bell wins
   ; add bull corner
   ; add double bull corner
+  ; penalize bear or bull losing holders
   ask players [
     if member? "bull" cards and occurrences one-of modes cards cards = 9 [
       output-show (word "Double Bull Winner! (" item 2 cards ")")
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
       set do-trade false
-      score-winner one-of modes cards
+      score-winner one-of modes cards "double"
+      set won true
       stop ]
 
     ; add bull corner
@@ -154,7 +157,8 @@ to select-offer
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
       set do-trade false
-      score-winner one-of modes cards
+      score-winner one-of modes cards ""
+      set won true
       stop ]
 
     if occurrences one-of modes cards cards = 9 [
@@ -162,20 +166,31 @@ to select-offer
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
       set do-trade false
-      score-winner one-of modes cards
+      score-winner one-of modes cards ""
+      set won true
       stop ]
   ]
   output-print "end select-offer" output-print ""
 end
 
-to score-winner [commodity]
-  print scores
+to score-winner [commodity mode]
+  let price 0
   cf:match commodity
-  cf:case [c -> c = "wheat"] [array:set scores who 100 + array:item scores who]
-  cf:case [c -> c = "barley"] [array:set scores who 85 + array:item scores who]
-  cf:case [c -> c = "corn"] [array:set scores who 75 + array:item scores who]
-  cf:case [c -> c = "oats"] [array:set scores who 60 + array:item scores who]
-  cf:else [array:set scores who 50 + array:item scores who] ; fictional price
+  cf:case [c -> c = "wheat"] [set price 100]
+  cf:case [c -> c = "barley"] [set price 85]
+  cf:case [c -> c = "corn"] [set price 75]
+  cf:case [c -> c = "oats"] [set price 60]
+  cf:else [set price 50] ; fictional price
+  cf:match mode
+  cf:case [m -> m = "doubleBull"] [array:set scores who price + array:item scores who + 2 * price]
+  cf:else [array:set scores who price + array:item scores who]
+end
+
+to penalize-loser
+  ask players with [won = false] [
+    if member? "bull" cards [array:set scores who array:item scores who - 20]
+    if member? "bear" cards [array:set scores who array:item scores who - 20]
+  ]
 end
 
 to find-and-make-trade
@@ -258,13 +273,14 @@ to one-round
   analyze-position
   find-and-make-trade
   ]
+  penalize-loser
+  print scores
 end
 
 ;  write game-loop until score of player > 500
 to one-game
   ca
   set scores array:from-list [0 0 0 0 0]
-  print scores
   while [max (array:to-list scores) < 500] [
     one-round
   ]
