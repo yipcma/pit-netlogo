@@ -7,7 +7,7 @@
 ;; for components and rules https://tametheboardgame.com/category/published-games/pit/
 extensions [sound cf array]
 
-globals [deck  do-trade xcards1 xcards2 winner this-trader-g other-trader-g scores]
+globals [deck  do-trade xcards1 xcards2 winner this-trader-g other-trader-g scores round-counter]
 
 breed [players player]
 
@@ -62,7 +62,7 @@ to deal
 end
 
 to analyze-position
-  output-print ""
+;  output-print ""
   select-keepers
   select-offer
 end
@@ -100,11 +100,11 @@ to select-keepers
       [set trade-set lput ??1 trade-set] ]
     set trade-set sort remove "bull" trade-set
       ; remove bull from trade-set
-    output-show word "I am cornering " most-cards
-    output-show word "My trade-set is " trade-set
+;    output-show word "I am cornering " most-cards
+;    output-show word "My trade-set is " trade-set
     ]
    ]
-  output-print "end select-keepers" output-print ""
+;  output-print "end select-keepers" output-print ""
 end
 
 to-report occurrences [x the-list]
@@ -131,7 +131,7 @@ to select-offer
           ;; reduce to a random amount > 0, less than max
           ;; output-show word "before random: " offered-count
           set offered-count (random offered-count) + 1
-          output-show (word "Player " who " offers " offered-count " (" trade-pick ")" )
+;          output-show (word "Player " who " offers " offered-count " (" trade-pick ")" )
           repeat offered-count [set offered-cards lput trade-pick offered-cards]
         ]
 
@@ -143,7 +143,7 @@ to select-offer
   ; penalize bear or bull losing holders
   ask players [
     if member? "bull" cards and occurrences one-of modes cards cards = 9 [
-      output-show (word "Double Bull Winner! (" item 2 cards ")")
+      output-show (word round-counter ": Double Bull Winner! (" item 2 cards ")")
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
       set do-trade false
@@ -153,7 +153,7 @@ to select-offer
 
     ; add bull corner
     if member? "bull" cards and occurrences one-of modes cards cards = 8 [
-      output-show (word "Bull Winner! (" item 2 cards ")")
+      output-show (word round-counter ": Bull Winner! (" item 2 cards ")")
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
       set do-trade false
@@ -162,7 +162,7 @@ to select-offer
       stop ]
 
     if occurrences one-of modes cards cards = 9 [
-      output-show (word "Winner! (" item 1 cards ")" )
+      output-show (word round-counter ": Winner! (" item 1 cards ")" )
       sound:play-note "tubular bells" 100 111 2
       set winner lput who winner
       set do-trade false
@@ -170,7 +170,7 @@ to select-offer
       set won true
       stop ]
   ]
-  output-print "end select-offer" output-print ""
+;  output-print "end select-offer" output-print ""
 end
 
 to score-winner [commodity mode]
@@ -182,7 +182,7 @@ to score-winner [commodity mode]
   cf:case [c -> c = "oats"] [set price 60]
   cf:else [set price 50] ; fictional price
   cf:match mode
-  cf:case [m -> m = "doubleBull"] [array:set scores who price + array:item scores who + 2 * price]
+  cf:case [m -> m = "double"] [array:set scores who 2 * price + array:item scores who]
   cf:else [array:set scores who price + array:item scores who]
 end
 
@@ -194,7 +194,7 @@ to penalize-loser
 end
 
 to find-and-make-trade
-  output-print ""
+;  output-print ""
   ask players [
     let my-count offered-count
     ;; do-trade is global, changed to false in make-trade
@@ -218,7 +218,7 @@ to find-and-make-trade
 
   ]
 
-    output-print "end find-and-make-trade" output-print ""
+;    output-print "end find-and-make-trade" output-print ""
     tick
 end
 
@@ -229,11 +229,12 @@ to make-trade [my-count]
  ;then set do-trade false
  ;this bogs down if same cards are returned
  ;output-show sentence  who  offered-cards
- output-show offered-cards
+; output-show offered-cards
  let other-trader nobody
  let this-trader who
  ask one-of other players with [offered-count = my-count]
-    [ output-show offered-cards
+    [
+;      output-show offered-cards
       set other-trader who
       ]
  exchange-cards this-trader other-trader
@@ -274,13 +275,15 @@ to one-round
   find-and-make-trade
   ]
   penalize-loser
-  print scores
+  print (word round-counter ":" scores)
+  set round-counter round-counter + 1
 end
 
 ;  write game-loop until score of player > 500
 to one-game
   ca
   set scores array:from-list [0 0 0 0 0]
+  set round-counter 0
   while [max (array:to-list scores) < 500] [
     one-round
   ]
