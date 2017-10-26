@@ -1022,11 +1022,12 @@ NetLogo 6.0.2
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment" repetitions="8" runMetricsEveryStep="false">
+  <experiment name="experiment" repetitions="80" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>one-game</go>
     <metric>first winner</metric>
     <metric>array:to-list scores</metric>
+    <metric>round-counter</metric>
   </experiment>
 </experiments>
 @#$#@#$#@
