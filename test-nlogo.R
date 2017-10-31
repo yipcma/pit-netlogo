@@ -3,7 +3,6 @@
 library(tidyverse)
 library(RNetLogo)
 
-setwd("~/repos/Netlogos-Projects/pit-netlogo/")
 basepath <- "/Applications/NetLogo 6.0.2/"
 nl.path <- "/Applications/NetLogo 6.0.2/Java/"
 
@@ -19,6 +18,17 @@ NLCommand("print \"Hello NetLogo, I called you from R.\"")
 density.in.r <- 88
 NLCommand("set density ", density.in.r, "setup", "go")
 NLDoCommand(10, "go")
+NLDoCommandWhile("ticks < 20", "go")
 NLReport("ticks")
+
+# NLGetAgentSet rewrite for NetLogo6
+NLGetAgentSet1 <- function(agent.var, agentset) {
+  names(agent.var) <- agent.var
+  lapply(agent.var, function(x) {
+    NLReport(paste("map [i -> [", x, "] of i] sort", agentset))
+  }) %>% dplyr::as_data_frame()
+}
+
+test <- NLGetAgentSet1(c("who", "color"), "fires")
 
 NLQuit()
