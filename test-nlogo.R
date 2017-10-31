@@ -23,12 +23,13 @@ NLReport("ticks")
 
 # NLGetAgentSet rewrite for NetLogo6
 NLGetAgentSet1 <- function(agent.var, agentset) {
-  names(agent.var) <- agent.var
-  lapply(agent.var, function(x) {
-    NLReport(paste("map [i -> [", x, "] of i] sort", agentset))
-  }) %>% dplyr::as_data_frame()
+  tmp <- NLReport(paste("map [i -> [", agent.var, "] of i] sort", agentset))
+  names(tmp) <- agent.var
+  tmp %>% dplyr::as_data_frame()
 }
 
 test <- NLGetAgentSet1(c("who", "color"), "fires")
+
+# simulation
 
 NLQuit()
