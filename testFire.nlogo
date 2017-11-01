@@ -13,7 +13,7 @@ to setup
   ask patches with [(random-float 100) < density]
     [ set pcolor green ]
   ;; make a column of burning trees
-  ask patches with [pxcor = min-pxcor and pycor < 50]
+  ask patches with [pxcor = min-pxcor]
     [ ignite ]
   ;; set tree counts
   set initial-trees count patches with [pcolor = green]
@@ -100,7 +100,7 @@ density
 density
 0.0
 99.0
-57.0
+61.0
 1.0
 1
 %
@@ -519,6 +519,14 @@ setup
 repeat 180 [ go ]
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experiment" repetitions="20" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>(burned-trees / initial-trees) * 100</metric>
+    <steppedValueSet variable="density" first="55" step="1" last="65"/>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default

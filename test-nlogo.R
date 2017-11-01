@@ -1,5 +1,6 @@
 # install.packages("rJava", repos = c(CRAN = "https://cran.revolutionanalytics.com"))
 
+library(rasterVis)
 library(tidyverse)
 library(RNetLogo)
 
@@ -16,24 +17,39 @@ NLStart(nl.path,
 NLLoadModel("/Users/yipc/repos/Netlogos-Projects/pit-netlogo/testFire.nlogo")
 
 # simulation
-simFire <- function(density) {
+simFire <- function(density, steps = F) {
   NLCommand(paste("set density", density), "setup")
-  NLDoReportWhile(
-    "any? turtles",
-    "go",
-    c("ticks", "burned-trees / initial-trees"),
-    as.data.frame = T,
-    df.col.names = c("tick", "burnedFraction")
-  )
+
+  if (steps) {
+    NLDoReport(
+      steps,
+      "go",
+      c("ticks", "burned-trees / initial-trees"),
+      as.data.frame = T,
+      df.col.names = c("tick", "burnedFraction")
+    )
+  } else {
+    NLDoReportWhile(
+      "any? turtles",
+      "go",
+      c("ticks", "burned-trees / initial-trees"),
+      as.data.frame = T,
+      df.col.names = c("tick", "burnedFraction")
+    )
+  }
+
 }
 
-simFire(50)
+# run sim
+simFire(50, 30)
 
-testAgentSet <- NLGetAgentSet1(c("who", "color / 15"), "fires")
+# get agentset
+testAgentSet <- NLGetAgentSet1(c("who", "color", "xcor", "ycor"), "fires")
 
+# get patches
 testPatches <- NLGetPatches1("pcolor", "patches")
 
-library(rasterVis)
+# plot patches and agentset
 levelplot(testPatches)
 
 NLQuit()
